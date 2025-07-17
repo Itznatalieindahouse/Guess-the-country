@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Geography Game</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="game-container">
+        <div class="header">
+            <h1>Geography Game</h1>
+            <div class="game-info">
+                <div class="score">Score: <span id="score">0</span></div>
+                <div class="guesses">Guesses: <span id="guesses">3</span></div>
+            </div>
+        </div>
+        
+        <div class="prompt-container">
+            <div id="prompt">Click "Start Game" to begin!</div>
+            <button id="startBtn">Start Game</button>
+            <button id="nextBtn" style="display: none;">Next Country</button>
+        </div>
+
+        <div class="map-container">
+            <div class="map-controls">
+                <button id="zoomIn">+</button>
+                <button id="zoomOut">-</button>
+                <button id="resetView">Reset</button>
+            </div>
+            <div id="mapWrapper" class="map-wrapper">
+                <svg
+                   xmlns:mapsvg="http://mapsvg.com"
+                   xmlns:dc="http://purl.org/dc/elements/1.1/"
+                   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+                   xmlns:svg="http://www.w3.org/2000/svg"
+                   xmlns="http://www.w3.org/2000/svg"
+                   mapsvg:geoViewBox="-169.110266 83.600842 190.486279 -58.508473"
+                   viewBox="0 0 1009.6727 665.96301"
+                   width="1009.6727"
+                   height="665.96301"
+                   id="worldMap">
+                    <!-- SVG content will be loaded here -->
+                </svg>
+            </div>
+        </div>
+
+        <div class="feedback" id="feedback"></div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html> 

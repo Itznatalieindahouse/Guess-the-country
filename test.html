@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Map Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background: #f0f0f0;
+        }
+        .map-container {
+            background: white;
+            border: 2px solid #ccc;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+        #test-map {
+            width: 100%;
+            height: 400px;
+            border: 1px solid #ddd;
+        }
+        .country {
+            fill: #e8f4fd;
+            stroke: #3498db;
+            stroke-width: 1;
+            cursor: pointer;
+        }
+        .country:hover {
+            fill: #d1ecf1;
+        }
+        .info {
+            background: #e8f4fd;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>World Map Test</h1>
+    
+    <div class="info">
+        <h3>Debug Information:</h3>
+        <div id="debug-info">Loading...</div>
+    </div>
+    
+    <div class="map-container">
+        <h3>World Map:</h3>
+        <svg id="test-map" viewBox="0 0 1000 500" preserveAspectRatio="xMidYMid meet">
+            <!-- Map will be rendered here -->
+        </svg>
+    </div>
+    
+    <div class="info">
+        <h3>Instructions:</h3>
+        <p>1. Check the debug information above</p>
+        <p>2. Look for the map with country outlines</p>
+        <p>3. Countries should be visible and clickable</p>
+        <p>4. Check browser console (F12) for detailed logs</p>
+    </div>
+
+    <script>
+        class MapTest {
+            constructor() {
+                this.mapElement = document.getElementById('test-map');
+                this.debugElement = document.getElementById('debug-info');
+                this.loadMapData();
+            }
+            
+            async loadMapData() {
+                try {
+                    this.updateDebug('Loading map data...');
+                    const response = await fetch('world-countries.json');
+                    
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    
+                    const data = await response.json();
+                    this.updateDebug(`Map data loaded: ${data.features ? data.features.length : 0} countries`);
+                    
+                    if (data.features && data.features.length > 0) {
+                        this.renderMap(data.features);
+                    } else {
+                        throw new Error('No features found in GeoJSON data');
+                    }
+                } catch (error) {
+                    console.error('Error loading map data:', error);
+                    this.updateDebug(`Error: ${error.message}`);
+                    this.loadFallbackData();
+                }
+            }
+            
+            loadFallbackData() {
+                this.updateDebug('Loading fallback data...');
+                const fallbackCountries = [
+                    {
+                        properties: { name: "United States" },
+                        geometry: {
+                            coordinates: [[[100, 100], [100, 200], [300, 200], [300, 100], [100, 100]]]
+                        }
+                    },
+                    {
+                        properties: { name: "Canada" },
+                        geometry: {
+                            coordinates: [[[100, 50], [100, 100], [300, 100], [300, 50], [100, 50]]]
+                        }
+                    },
+                    {
+                        properties: { name: "Brazil" },
+                        geometry: {
+                            coordinates: [[[200, 250], [200, 350], [350, 350], [350, 250], [200, 250]]]
+                        }
+                    }
+                ];
+                this.renderMap(fallbackCountries);
+            }
+            
+            renderMap(countries) {
+                this.updateDebug(`Rendering ${countries.length} countries...`);
+                this.mapElement.innerHTML = '';
+                
+                // Add background
+                const background = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+                background.setAttribute('x', '0');
+                background.setAttribute('y', '0');
+                background.setAttribute('width', '1000');
+                background.setAttribute('height', '500');
+                background.setAttribute('fill', '#f0f8ff');
+                background.setAttribute('stroke', '#ccc');
+                background.setAttribute('stroke-width', '2');
+                this.mapElement.appendChild(background);
+                
+                countries.forEach((country, index) => {
+                    try {
+                        const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+                        path.setAttribute('class', 'country');
+                        path.setAttribute('data-country-name', country.properties.name);
+                        
+                        const coordinates = country.geometry.coordinates[0];
+                        const pathData = this.coordinatesToPath(coordinates);
+                        path.setAttribute('d', pathData);
+                        
+                        path.addEventListener('click', () => {
+                            alert(`Clicked: ${country.properties.name}`);
+                        });
+                        
+                        this.mapElement.appendChild(path);
+                        console.log(`Added: ${country.properties.name}`);
+                    } catch (error) {
+                        console.error(`Error rendering ${country.properties.name}:`, error);
+                    }
+                });
+                
+                this.updateDebug(`Map rendered with ${this.mapElement.children.length - 1} countries`);
+            }
+            
+            coordinatesToPath(coordinates) {
+                const svgWidth = 1000;
+                const svgHeight = 500;
+                
+                let pathData = '';
+                coordinates.forEach((coord, index) => {
+                    let lon = coord[0];
+                    if (lon < -180) lon += 360;
+                    if (lon > 180) lon -= 360;
+                    
+                    const x = ((lon + 180) / 360) * svgWidth;
+                    const y = ((90 - coord[1]) / 180) * svgHeight;
+                    
+                    if (index === 0) {
+                        pathData += `M ${x} ${y}`;
+                    } else {
+                        pathData += ` L ${x} ${y}`;
+                    }
+                });
+                pathData += ' Z';
+                return pathData;
+            }
+            
+            updateDebug(message) {
+                this.debugElement.innerHTML += `<div>${new Date().toLocaleTimeString()}: ${message}</div>`;
+                console.log(message);
+            }
+        }
+        
+        // Initialize when page loads
+        document.addEventListener('DOMContentLoaded', () => {
+            new MapTest();
+        });
+    </script>
+</body>
+</html> 
